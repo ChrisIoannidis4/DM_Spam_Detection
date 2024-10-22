@@ -29,15 +29,11 @@ def create_descriptors(df, method = "bow", ngram_type = 'unigram', vocab_size=Fa
         ngram_range = (1, 1)
     elif ngram_type == 'bigram':
         ngram_range = (1, 2)
-    else:
-        raise ValueError("Choose 'unigram' or 'bigram'.")
     
     if method == 'bow':
         model = CountVectorizer(ngram_range=ngram_range, max_features=vocab_size if vocab_size else None)
     elif method == 'tf-idf':
-        model = TfidfVectorizer(ngram_range=ngram_range, max_features=vocab_size if vocab_size else None)
-    else:
-        raise ValueError("Available options: 'bow' or 'tf-idf'.")
+        model = TfidfVectorizer(ngram_range=ngram_range, max_features=vocab_size if vocab_size else None) 
 
     feature_vectors = model.fit_transform(df['review_text'])
 
@@ -48,6 +44,11 @@ def create_descriptors(df, method = "bow", ngram_type = 'unigram', vocab_size=Fa
 
 
 def logreg_grid_search(feature_vectors, labels):
+    '''
+    hyperparameter tuning for logistic regression, for parameter C
+    returns dict
+    e.g. {'C' = 3000}
+    '''
     log_reg = LogisticRegression(solver = 'liblinear', penalty='l1')
     param_grid = {'C': [500, 1000, 2000, 3000]}
     grid_search = utils.perform_grid_search(log_reg, param_grid, feature_vectors, labels)
@@ -56,6 +57,11 @@ def logreg_grid_search(feature_vectors, labels):
 
 
 def tree_grid_search(feature_vectors, labels):
+    '''
+    hyperparameter tuning for tree classifier, for pruning parameter a
+    returns dict
+    e.g. {'ccp_alpha' = 0001}
+    '''
     decision_tree_clf= DecisionTreeClassifier(random_state=42)
     param_grid = {'ccp_alpha': [0.0001, 0.001, 0.01, 0.1, 1]}
     grid_search = utils.perform_grid_search(decision_tree_clf, param_grid, feature_vectors, labels)
@@ -64,6 +70,10 @@ def tree_grid_search(feature_vectors, labels):
 
 
 def rf_search(feature_vectors, labels):
+    '''
+    we dont do kfold cross validation for random forest fine tuning, we use oob score
+
+    '''
     param_grid = {'n_estimators': [50, 100, 200, 400],
         'max_features': ['sqrt', 'log2', 0.2, 500, 1000, None]}
     best_score, best_params, best_model = -1, None, None
@@ -87,24 +97,30 @@ def rf_search(feature_vectors, labels):
                 f.write(f"OOB Score for n_estimators={n_estimators}, max_features={max_features}: {oob_score:.4f}\n")
 
         f.write(f"Best Params: {best_params}, Best OOB Score: {best_score:.4f}")
-    return best_model, best_params
+    return best_params
 
 
 
 def kfold_no_features(df, model, method, n_gram, vocab_sizes=[500, 1000, 2000, None]):
-    
+    '''
+    model: model object, it can test for any algorithm with cross validation the ideal vocabulary size/feature selection
+    it tracks by f1 score.
+    it is created mainly for the naive_bayes configuration option mentioned in the assignment
+    '''
     best_f1_score = -1
     best_vocab_size = None
     all_results=[]
     for vocab_size in vocab_sizes:
+        #for evey vocabulary size option, we initiate a kfold 
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
         total_accuracy, total_precision, total_recall, total_f1_score = 0, 0, 0, 0
 
+        # keep the feature extractor aka vectorizer that has kept the right bins from the dataset
         _, feature_extractor = create_descriptors(df, method=method, ngram_type=n_gram, vocab_size=vocab_size)
         labels = df["deceptive_flag"].values.astype(int)
 
         for train_index, test_index in kf.split(df):
-            
+            #perform cross validation
             x_train, x_test = feature_extractor.transform(df["review_text"].iloc[train_index]), \
                             feature_extractor.transform(df["review_text"].iloc[test_index])
             y_train, y_test = labels[train_index], labels[test_index]
@@ -139,7 +155,6 @@ def naive_bayes_search(df, method, n_gram, vocab_sizes= [500, 1000, 2000, None])
     return best_vocab_size
 
 
-# to be done
 def train_model(x_train, y_train, model_type, hyperparameters=None):  
     if hyperparameters is None:
         hyperparameters = {} 
@@ -158,6 +173,7 @@ def train_model(x_train, y_train, model_type, hyperparameters=None):
 
 def main():
     
+    #DESCRIPTOR HYPERPARAMS
     METHOD="tf-idf"
     NGRAM_TYPE='unigram'
     VOCAB_SIZE = None
@@ -168,20 +184,27 @@ def main():
     labels = reviews["deceptive_flag"].values.astype(int)
 
 
+    # grid searches, toggle on the one you want to perform
     # best_vocab_size = naive_bayes_search(reviews, METHOD, NGRAM_TYPE, vocab_sizes= [500, 1000, 2000, None])
-    logreg_best_params = logreg_grid_search(feature_vectors, labels)
+    # logreg_best_params = logreg_grid_search(feature_vectors, labels)
     # tree_best_params = tree_grid_search(feature_vectors, labels)
-    # _, best_params = rf_search(feature_vectors, labels)
+    # rf_best_params = rf_search(feature_vectors, labels)
+    # feature_vectors, _ = create_descriptors(reviews, METHOD, NGRAM_TYPE, best_vocab_size) #only for naive bayes
 
     x_train, x_test, y_train, y_test = train_test_split(feature_vectors, labels, test_size=0.2)
 
-    model=train_model(x_train, y_train, "logreg", hyperparameters=logreg_best_params)
+    #Train full model. if you we have skipped the grid search by this point, hyperparameters should be specified as dict
+    # e.g. {"C" = 3000}
+    model=train_model(x_train, y_train, "bayes", hyperparameters=None)
     y_pred = model.predict(x_test)
     accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
     print(accuracy, precision, recall, f1_score)
-    with open("model_eval/logreg_tfidf_none.txt", "w") as f:
-        f.write(f"accuracy: {accuracy:.4f}\nprecision: {precision:.4f}\nrecall{recall:.4f}\nf1_score: {f1_score:.4f} with {logreg_best_params}")
+
+    #put the correct folder name
+    with open("model_eval/bayes_tfidf_none.txt", "w") as f:
+        f.write(f"accuracy: {accuracy:.4f}\nprecision: {precision:.4f}\nrecall{recall:.4f}\nf1_score: {f1_score:.4f} ")
 
 
 if __name__ == "__main__":
     main()
+

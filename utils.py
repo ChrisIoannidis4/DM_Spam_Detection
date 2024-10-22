@@ -39,7 +39,7 @@ def perform_grid_search(model, param_grid, feature_vectors, labels):
     used for logistic regression and tree search
     inputs:
     model: model object, param_grid:dict
-    outputs: grid search and its results
+    returns: grid search and its results
     '''
     kf = KFold(n_splits=5, shuffle=True, random_state=42) 
     
@@ -64,7 +64,6 @@ def write_grid_search_results(file_path, grid_search):
 
 
 def write_bayes_results(best_vocab_size, all_scores): 
-
     with open("grid_search_results/bayes_results.txt", "w") as f:
         for score in all_scores:
             f.write(f"vocab size: {score['vocab_size']}\n")

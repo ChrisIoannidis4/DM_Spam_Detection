@@ -1,0 +1,4 @@
+accuracy: 0.6750
+precision: 0.7027
+recall0.6341
+f1_score: 0.6667 with {'ccp_alpha': 0.0001}

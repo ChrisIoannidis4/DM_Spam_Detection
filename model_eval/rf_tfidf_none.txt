@@ -1,0 +1,4 @@
+accuracy: 0.8500
+precision: 0.8313
+recall0.8734
+f1_score: 0.8519 with {'n_estimators': 400, 'max_features': 'log2'}
