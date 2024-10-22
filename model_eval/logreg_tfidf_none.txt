@@ -1,0 +1,4 @@
+accuracy: 0.8063
+precision: 0.8026
+recall0.7922
+f1_score: 0.7974 with C = {'C': 3000}

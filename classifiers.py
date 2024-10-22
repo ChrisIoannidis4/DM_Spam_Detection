@@ -1,12 +1,12 @@
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.model_selection import KFold, GridSearchCV
+from sklearn.model_selection import KFold 
 import utils
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, make_scorer
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier 
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 
 
 def create_descriptors(df, method = "bow", ngram_type = 'unigram', vocab_size=False):
@@ -49,10 +49,11 @@ def create_descriptors(df, method = "bow", ngram_type = 'unigram', vocab_size=Fa
 
 def logreg_grid_search(feature_vectors, labels):
     log_reg = LogisticRegression(solver = 'liblinear', penalty='l1')
-    param_grid = {'C': [0.01, 0.1, 1, 10, 100, 500, 1000]}
+    param_grid = {'C': [500, 1000, 2000, 3000]}
     grid_search = utils.perform_grid_search(log_reg, param_grid, feature_vectors, labels)
     utils.write_grid_search_results("grid_search_results/log_reg_results.txt", grid_search)
     return grid_search.best_params_
+
 
 def tree_grid_search(feature_vectors, labels):
     decision_tree_clf= DecisionTreeClassifier(random_state=42)
@@ -143,7 +144,7 @@ def train_model(x_train, y_train, model_type, hyperparameters=None):
     if hyperparameters is None:
         hyperparameters = {} 
     if model_type == 'logreg': 
-        model = LogisticRegression(**hyperparameters)
+        model = LogisticRegression(penalty='l1', solver='liblinear', **hyperparameters)
     elif model_type == 'tree': 
         model = DecisionTreeClassifier(**hyperparameters)
     elif model_type == 'rf':  
@@ -169,23 +170,17 @@ def main():
 
     # best_vocab_size = naive_bayes_search(reviews, METHOD, NGRAM_TYPE, vocab_sizes= [500, 1000, 2000, None])
     logreg_best_params = logreg_grid_search(feature_vectors, labels)
-    tree_best_params = tree_grid_search(feature_vectors, labels)
-    _, best_params = rf_search(feature_vectors, labels)
+    # tree_best_params = tree_grid_search(feature_vectors, labels)
+    # _, best_params = rf_search(feature_vectors, labels)
 
+    x_train, x_test, y_train, y_test = train_test_split(feature_vectors, labels, test_size=0.2)
 
-
-    model=train_model(feature_vectors,labels, "logreg", hyperparameters=logreg_best_params)
-    y_pred = model.predict(feature_vectors)
-    accuracy, precision, recall, f1_score = utils.evaluate_model(labels, y_pred)
+    model=train_model(x_train, y_train, "logreg", hyperparameters=logreg_best_params)
+    y_pred = model.predict(x_test)
+    accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
     print(accuracy, precision, recall, f1_score)
-    # with open("model_eval/logreg.txt", "w") as f:
-    #         f.write(f"Model Type: Logistic Regression\n")
-    #         f.write(f"Best Hyperparameters: {logreg_best_params}\n")
-    #         f.write(f"Accuracy: {accuracy:.4f}\n")
-    #         f.write(f"Precision: {precision:.4f}\n")
-    #         f.write(f"Recall: {recall:.4f}\n")
-    #         f.write(f"F1 Score: {f1_score:.4f}\n")
-
+    with open("model_eval/logreg_tfidf_none.txt", "w") as f:
+        f.write(f"accuracy: {accuracy:.4f}\nprecision: {precision:.4f}\nrecall{recall:.4f}\nf1_score: {f1_score:.4f} with {logreg_best_params}")
 
 
 if __name__ == "__main__":
