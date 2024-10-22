@@ -6,4 +6,5 @@
                 - kfold_no_features() can be used to test with cross-validation for feature selection (based on word/feature popularity), although the create_descriptors() has the option to do it too. 
 
 -grid_search_result: the full results of the grid searches and specified best parameters
+
 -model_eval: the results after training the model with the best parameters and testing it on a test set
