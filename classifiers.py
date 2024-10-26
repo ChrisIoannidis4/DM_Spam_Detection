@@ -183,15 +183,18 @@ def main():
     feature_vectors, _ = create_descriptors(reviews, method=METHOD, ngram_type=NGRAM_TYPE, vocab_size=VOCAB_SIZE)  
     labels = reviews["deceptive_flag"].values.astype(int)
 
-
+    x_train, x_test, y_train, y_test = train_test_split(feature_vectors, labels, test_size=0.2)
     # grid searches, toggle on the one you want to perform
-    # best_vocab_size = naive_bayes_search(reviews, METHOD, NGRAM_TYPE, vocab_sizes= [500, 1000, 2000, None])
-    # logreg_best_params = logreg_grid_search(feature_vectors, labels)
-    # tree_best_params = tree_grid_search(feature_vectors, labels)
-    # rf_best_params = rf_search(feature_vectors, labels)
+    # best_vocab_size = naive_bayes_search(
+    #                     reviews, METHOD, NGRAM_TYPE, 
+    #                     vocab_sizes= [500, 1000, 2000, None]
+    #                     ) #have to change: take as input only x_train 
+                          #and not all dataframe
+    # logreg_best_params = logreg_grid_search(x_train, labels)
+    # tree_best_params = tree_grid_search(x_train, labels)
+    # rf_best_params = rf_search(x_train, labels)
     # feature_vectors, _ = create_descriptors(reviews, METHOD, NGRAM_TYPE, best_vocab_size) #only for naive bayes
 
-    x_train, x_test, y_train, y_test = train_test_split(feature_vectors, labels, test_size=0.2)
 
     #Train full model. if you we have skipped the grid search by this point, hyperparameters should be specified as dict
     # e.g. {"C" = 3000}
