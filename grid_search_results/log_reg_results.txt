@@ -1,18 +1,18 @@
-best params: {'C': 3000}
-best model: LogisticRegression(C=3000, penalty='l1', solver='liblinear')
-params: {'C': 500}, mean accuracy score: 0.8287, std_dev: 0.0264
-params: {'C': 1000}, mean accuracy score: 0.8275, std_dev: 0.0233
-params: {'C': 2000}, mean accuracy score: 0.8525, std_dev: 0.0292
-params: {'C': 3000}, mean accuracy score: 0.8525, std_dev: 0.0233
-params: {'C': 500}, mean precision score: 0.8397, std_dev: 0.0439
-params: {'C': 1000}, mean precision score: 0.8331, std_dev: 0.0348
-params: {'C': 2000}, mean precision score: 0.8581, std_dev: 0.0384
-params: {'C': 3000}, mean precision score: 0.8565, std_dev: 0.0378
-params: {'C': 500}, mean recall score: 0.8179, std_dev: 0.0347
-params: {'C': 1000}, mean recall score: 0.8219, std_dev: 0.0267
-params: {'C': 2000}, mean recall score: 0.8499, std_dev: 0.0363
-params: {'C': 3000}, mean recall score: 0.8526, std_dev: 0.0435
-params: {'C': 500}, mean f1 score: 0.8272, std_dev: 0.0166
-params: {'C': 1000}, mean f1 score: 0.8266, std_dev: 0.0153
-params: {'C': 2000}, mean f1 score: 0.8528, std_dev: 0.0195
-params: {'C': 3000}, mean f1 score: 0.8528, std_dev: 0.0137
+best params: {'C': 1000}
+best model: LogisticRegression(C=1000, penalty='l1', solver='liblinear')
+params: {'C': 500}, mean accuracy score: 0.8125, std_dev: 0.0148
+params: {'C': 1000}, mean accuracy score: 0.8219, std_dev: 0.0151
+params: {'C': 2000}, mean accuracy score: 0.8187, std_dev: 0.0181
+params: {'C': 3000}, mean accuracy score: 0.8125, std_dev: 0.0210
+params: {'C': 500}, mean precision score: 0.8086, std_dev: 0.0090
+params: {'C': 1000}, mean precision score: 0.8180, std_dev: 0.0231
+params: {'C': 2000}, mean precision score: 0.8198, std_dev: 0.0113
+params: {'C': 3000}, mean precision score: 0.8011, std_dev: 0.0281
+params: {'C': 500}, mean recall score: 0.8319, std_dev: 0.0471
+params: {'C': 1000}, mean recall score: 0.8374, std_dev: 0.0439
+params: {'C': 2000}, mean recall score: 0.8290, std_dev: 0.0413
+params: {'C': 3000}, mean recall score: 0.8392, std_dev: 0.0540
+params: {'C': 500}, mean f1 score: 0.8195, std_dev: 0.0249
+params: {'C': 1000}, mean f1 score: 0.8272, std_dev: 0.0310
+params: {'C': 2000}, mean f1 score: 0.8241, std_dev: 0.0257
+params: {'C': 3000}, mean f1 score: 0.8194, std_dev: 0.0397

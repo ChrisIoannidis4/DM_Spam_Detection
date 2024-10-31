@@ -1,0 +1,31 @@
+vocab size: 500
+  acc: 0.8423
+  prec: 0.8226
+  recall: 0.8757
+  f1_score: 0.8482
+
+vocab size: 1000
+  acc: 0.8673
+  prec: 0.8558
+  recall: 0.8857
+  f1_score: 0.8704
+
+vocab size: 2000
+  acc: 0.8861
+  prec: 0.8647
+  recall: 0.9169
+  f1_score: 0.8897
+
+vocab size: 3000
+  acc: 0.8768
+  prec: 0.8455
+  recall: 0.9230
+  f1_score: 0.8821
+
+vocab size: None
+  acc: 0.7910
+  prec: 0.7152
+  recall: 0.9760
+  f1_score: 0.8238
+
+best size: 2000

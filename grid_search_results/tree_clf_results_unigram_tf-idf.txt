@@ -1,0 +1,22 @@
+best params: {'ccp_alpha': 0.01}
+best model: DecisionTreeClassifier(ccp_alpha=0.01, random_state=42)
+params: {'ccp_alpha': 0.0001}, mean accuracy score: 0.6500, std_dev: 0.0397
+params: {'ccp_alpha': 0.001}, mean accuracy score: 0.6500, std_dev: 0.0397
+params: {'ccp_alpha': 0.01}, mean accuracy score: 0.6781, std_dev: 0.0194
+params: {'ccp_alpha': 0.1}, mean accuracy score: 0.4531, std_dev: 0.0331
+params: {'ccp_alpha': 1}, mean accuracy score: 0.4531, std_dev: 0.0331
+params: {'ccp_alpha': 0.0001}, mean precision score: 0.6494, std_dev: 0.0654
+params: {'ccp_alpha': 0.001}, mean precision score: 0.6494, std_dev: 0.0654
+params: {'ccp_alpha': 0.01}, mean precision score: 0.6755, std_dev: 0.0474
+params: {'ccp_alpha': 0.1}, mean precision score: 0.2797, std_dev: 0.2296
+params: {'ccp_alpha': 1}, mean precision score: 0.2797, std_dev: 0.2296
+params: {'ccp_alpha': 0.0001}, mean recall score: 0.6715, std_dev: 0.0894
+params: {'ccp_alpha': 0.001}, mean recall score: 0.6715, std_dev: 0.0894
+params: {'ccp_alpha': 0.01}, mean recall score: 0.7062, std_dev: 0.0413
+params: {'ccp_alpha': 0.1}, mean recall score: 0.6000, std_dev: 0.4899
+params: {'ccp_alpha': 1}, mean recall score: 0.6000, std_dev: 0.4899
+params: {'ccp_alpha': 0.0001}, mean f1 score: 0.6563, std_dev: 0.0551
+params: {'ccp_alpha': 0.001}, mean f1 score: 0.6563, std_dev: 0.0551
+params: {'ccp_alpha': 0.01}, mean f1 score: 0.6881, std_dev: 0.0147
+params: {'ccp_alpha': 0.1}, mean f1 score: 0.3812, std_dev: 0.3120
+params: {'ccp_alpha': 1}, mean f1 score: 0.3812, std_dev: 0.3120

@@ -1,0 +1,18 @@
+best params: {'C': 3000}
+best model: LogisticRegression(C=3000, penalty='l1', solver='liblinear')
+params: {'C': 500}, mean accuracy score: 0.8344, std_dev: 0.0151
+params: {'C': 1000}, mean accuracy score: 0.8344, std_dev: 0.0143
+params: {'C': 2000}, mean accuracy score: 0.8344, std_dev: 0.0151
+params: {'C': 3000}, mean accuracy score: 0.8469, std_dev: 0.0235
+params: {'C': 500}, mean precision score: 0.8362, std_dev: 0.0510
+params: {'C': 1000}, mean precision score: 0.8455, std_dev: 0.0305
+params: {'C': 2000}, mean precision score: 0.8314, std_dev: 0.0502
+params: {'C': 3000}, mean precision score: 0.8513, std_dev: 0.0388
+params: {'C': 500}, mean recall score: 0.8370, std_dev: 0.0529
+params: {'C': 1000}, mean recall score: 0.8211, std_dev: 0.0487
+params: {'C': 2000}, mean recall score: 0.8487, std_dev: 0.0587
+params: {'C': 3000}, mean recall score: 0.8480, std_dev: 0.0336
+params: {'C': 500}, mean f1 score: 0.8343, std_dev: 0.0272
+params: {'C': 1000}, mean f1 score: 0.8319, std_dev: 0.0250
+params: {'C': 2000}, mean f1 score: 0.8369, std_dev: 0.0199
+params: {'C': 3000}, mean f1 score: 0.8484, std_dev: 0.0161

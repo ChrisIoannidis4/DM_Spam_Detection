@@ -1,4 +1,4 @@
-accuracy: 0.8875
-precision: 0.8111
-recall0.9865
-f1_score: 0.8902 with no_features 2000
+accuracy: 0.8688
+precision: 0.8077
+recall0.9130
+f1_score: 0.8571 

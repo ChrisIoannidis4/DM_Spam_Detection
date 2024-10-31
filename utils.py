@@ -63,8 +63,8 @@ def write_grid_search_results(file_path, grid_search):
                 f.write(f"params: {params}, mean {metric} score: {mean_score:.4f}, std_dev: {std_score:.4f}\n")
 
 
-def write_bayes_results(best_vocab_size, all_scores): 
-    with open("grid_search_results/bayes_results.txt", "w") as f:
+def write_bayes_results(best_vocab_size, all_scores, name= None): 
+    with open(f"grid_search_results/bayes_results_{name}.txt", "w") as f:
         for score in all_scores:
             f.write(f"vocab size: {score['vocab_size']}\n")
             f.write(f"  acc: {score['accuracy']:.4f}\n")

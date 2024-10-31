@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
 
-def create_descriptors(df, method = "bow", ngram_type = 'unigram', vocab_size=False):
+def create_descriptors(x_train, method = "bow", ngram_type = 'unigram', vocab_size=False):
     '''
     Creates descriptors/feature vectors from the text which has to be in the column "review_text" of the df.
     inputs:
@@ -35,7 +35,7 @@ def create_descriptors(df, method = "bow", ngram_type = 'unigram', vocab_size=Fa
     elif method == 'tf-idf':
         model = TfidfVectorizer(ngram_range=ngram_range, max_features=vocab_size if vocab_size else None) 
 
-    feature_vectors = model.fit_transform(df['review_text'])
+    feature_vectors = model.fit_transform(x_train)
 
     # print(f"rows x features: {feature_vectors.shape}")  
     # print(f"examples:\n {[model.get_feature_names_out()[i] for i in range(1, 200, 20)]}")
@@ -43,7 +43,7 @@ def create_descriptors(df, method = "bow", ngram_type = 'unigram', vocab_size=Fa
 
 
 
-def logreg_grid_search(feature_vectors, labels):
+def logreg_grid_search(feature_vectors, labels, name=None):
     '''
     hyperparameter tuning for logistic regression, for parameter C
     returns dict
@@ -52,11 +52,11 @@ def logreg_grid_search(feature_vectors, labels):
     log_reg = LogisticRegression(solver = 'liblinear', penalty='l1')
     param_grid = {'C': [500, 1000, 2000, 3000]}
     grid_search = utils.perform_grid_search(log_reg, param_grid, feature_vectors, labels)
-    utils.write_grid_search_results("grid_search_results/log_reg_results.txt", grid_search)
+    utils.write_grid_search_results(f"grid_search_results/log_reg_results_{name}.txt", grid_search)
     return grid_search.best_params_
 
 
-def tree_grid_search(feature_vectors, labels):
+def tree_grid_search(feature_vectors, labels, name=None):
     '''
     hyperparameter tuning for tree classifier, for pruning parameter a
     returns dict
@@ -65,11 +65,11 @@ def tree_grid_search(feature_vectors, labels):
     decision_tree_clf= DecisionTreeClassifier(random_state=42)
     param_grid = {'ccp_alpha': [0.0001, 0.001, 0.01, 0.1, 1]}
     grid_search = utils.perform_grid_search(decision_tree_clf, param_grid, feature_vectors, labels)
-    utils.write_grid_search_results("grid_search_results/tree_clf_results.txt", grid_search)
+    utils.write_grid_search_results(f"grid_search_results/tree_clf_results_{name}.txt", grid_search)
     return grid_search.best_params_
 
 
-def rf_search(feature_vectors, labels):
+def rf_search(feature_vectors, labels, name=None):
     '''
     we dont do kfold cross validation for random forest fine tuning, we use oob score
 
@@ -78,7 +78,7 @@ def rf_search(feature_vectors, labels):
         'max_features': ['sqrt', 'log2', 0.2, 500, 1000, None]}
     best_score, best_params, best_model = -1, None, None
 
-    with open("grid_search_results/rf_results", "w") as f:
+    with open(f"grid_search_results/rf_results_{name}", "w") as f:
         for n_estimators in param_grid['n_estimators']:
             for max_features in param_grid['max_features']: 
                 rf_clf = RandomForestClassifier(
@@ -116,7 +116,7 @@ def kfold_no_features(df, model, method, n_gram, vocab_sizes=[500, 1000, 2000, N
         total_accuracy, total_precision, total_recall, total_f1_score = 0, 0, 0, 0
 
         # keep the feature extractor aka vectorizer that has kept the right bins from the dataset
-        _, feature_extractor = create_descriptors(df, method=method, ngram_type=n_gram, vocab_size=vocab_size)
+        _, feature_extractor = create_descriptors(df["review_text"], method=method, ngram_type=n_gram, vocab_size=vocab_size)
         labels = df["deceptive_flag"].values.astype(int)
 
         for train_index, test_index in kf.split(df):
@@ -149,9 +149,10 @@ def kfold_no_features(df, model, method, n_gram, vocab_sizes=[500, 1000, 2000, N
     return best_vocab_size, all_results
 
 
-def naive_bayes_search(df, method, n_gram, vocab_sizes= [500, 1000, 2000, None]):
+def naive_bayes_search(df, method, n_gram, vocab_sizes= [500, 1000, 2000, None], name=None):
     best_vocab_size, all_scores = kfold_no_features(df, MultinomialNB(), method, n_gram, vocab_sizes)
-    utils.write_bayes_results(best_vocab_size=best_vocab_size, all_scores=all_scores)
+    utils.write_bayes_results(best_vocab_size=best_vocab_size, all_scores=all_scores, name=name )
+    print(best_vocab_size)
     return best_vocab_size
 
 
@@ -174,38 +175,42 @@ def train_model(x_train, y_train, model_type, hyperparameters=None):
 def main():
     
     #DESCRIPTOR HYPERPARAMS
-    METHOD="tf-idf"
-    NGRAM_TYPE='unigram'
+    METHODS=['tf-idf', 'bow']
+    NGRAM_TYPES=['unigram', 'bigram']
     VOCAB_SIZE = None
 
     reviews = pd.read_csv("reviews_data.csv")
     reviews['review_text'] = reviews['review_text'].apply(utils.preprocess_text)
-    feature_vectors, _ = create_descriptors(reviews, method=METHOD, ngram_type=NGRAM_TYPE, vocab_size=VOCAB_SIZE)  
     labels = reviews["deceptive_flag"].values.astype(int)
+    x_train, x_test, y_train, y_test = train_test_split(reviews['review_text'], labels, test_size=0.2)
 
-    x_train, x_test, y_train, y_test = train_test_split(feature_vectors, labels, test_size=0.2)
-    # grid searches, toggle on the one you want to perform
-    # best_vocab_size = naive_bayes_search(
-    #                     reviews, METHOD, NGRAM_TYPE, 
-    #                     vocab_sizes= [500, 1000, 2000, None]
-    #                     ) #have to change: take as input only x_train 
-                          #and not all dataframe
-    # logreg_best_params = logreg_grid_search(x_train, labels)
-    # tree_best_params = tree_grid_search(x_train, labels)
-    # rf_best_params = rf_search(x_train, labels)
-    # feature_vectors, _ = create_descriptors(reviews, METHOD, NGRAM_TYPE, best_vocab_size) #only for naive bayes
+    for METHOD in METHODS:
+        for NGRAM_TYPE in NGRAM_TYPES:
+            print(METHOD, NGRAM_TYPE)
+            feature_vectors_train, transformer = create_descriptors(x_train, method=METHOD, ngram_type=NGRAM_TYPE, vocab_size=VOCAB_SIZE)  
+            feature_vectors_test = transformer.transform(x_test)
+            # grid searches, toggle on the one you want to perform
+            best_vocab_size = naive_bayes_search(
+                                reviews.loc[:len(x_train)], METHOD, NGRAM_TYPE, 
+                                vocab_sizes= [500, 1000, 2000, 3000, None], name=f"{NGRAM_TYPE}_{METHOD}"
+                                ) #have to change: take as input only x_train 
+                                #   and not all dataframe
+            logreg_best_params = logreg_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+            tree_best_params = tree_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+            rf_best_params = rf_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+            feature_vectors_train, model = create_descriptors(x_train, METHOD, NGRAM_TYPE, best_vocab_size) #only for naive bayes
+            feature_vectors_test = model.transform(x_test) #only for naive bayes too
 
+    # #Train full model. if you we have skipped the grid search by this point, hyperparameters should be specified as dict
+    # # e.g. {"C" = 3000}
+    # model=train_model(feature_vectors_train, y_train, "bayes", hyperparameters=None)
+    # y_pred = model.predict(feature_vectors_test)
+    # accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
+    # print(accuracy, precision, recall, f1_score)
 
-    #Train full model. if you we have skipped the grid search by this point, hyperparameters should be specified as dict
-    # e.g. {"C" = 3000}
-    model=train_model(x_train, y_train, "bayes", hyperparameters=None)
-    y_pred = model.predict(x_test)
-    accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
-    print(accuracy, precision, recall, f1_score)
-
-    #put the correct folder name
-    with open("model_eval/bayes_tfidf_none.txt", "w") as f:
-        f.write(f"accuracy: {accuracy:.4f}\nprecision: {precision:.4f}\nrecall{recall:.4f}\nf1_score: {f1_score:.4f} ")
+    # #put the correct folder name
+    # with open("model_eval/bayes_tfidf_none.txt", "w") as f:
+    #     f.write(f"accuracy: {accuracy:.4f}\nprecision: {precision:.4f}\nrecall{recall:.4f}\nf1_score: {f1_score:.4f} ")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,25 @@
+OOB Score for n_estimators=50, max_features=sqrt: 0.7781
+OOB Score for n_estimators=50, max_features=log2: 0.6797
+OOB Score for n_estimators=50, max_features=0.2: 0.7641
+OOB Score for n_estimators=50, max_features=500: 0.7469
+OOB Score for n_estimators=50, max_features=1000: 0.7937
+OOB Score for n_estimators=50, max_features=None: 0.7609
+OOB Score for n_estimators=100, max_features=sqrt: 0.8109
+OOB Score for n_estimators=100, max_features=log2: 0.7438
+OOB Score for n_estimators=100, max_features=0.2: 0.7828
+OOB Score for n_estimators=100, max_features=500: 0.7766
+OOB Score for n_estimators=100, max_features=1000: 0.8047
+OOB Score for n_estimators=100, max_features=None: 0.7641
+OOB Score for n_estimators=200, max_features=sqrt: 0.8172
+OOB Score for n_estimators=200, max_features=log2: 0.7969
+OOB Score for n_estimators=200, max_features=0.2: 0.7875
+OOB Score for n_estimators=200, max_features=500: 0.8156
+OOB Score for n_estimators=200, max_features=1000: 0.8328
+OOB Score for n_estimators=200, max_features=None: 0.7797
+OOB Score for n_estimators=400, max_features=sqrt: 0.8344
+OOB Score for n_estimators=400, max_features=log2: 0.8094
+OOB Score for n_estimators=400, max_features=0.2: 0.7797
+OOB Score for n_estimators=400, max_features=500: 0.8359
+OOB Score for n_estimators=400, max_features=1000: 0.8328
+OOB Score for n_estimators=400, max_features=None: 0.7688
+Best Params: {'n_estimators': 400, 'max_features': 500}, Best OOB Score: 0.8359
