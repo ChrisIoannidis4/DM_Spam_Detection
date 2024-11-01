@@ -1,18 +1,26 @@
-best params: {'C': 1000}
-best model: LogisticRegression(C=1000, penalty='l1', solver='liblinear')
-params: {'C': 500}, mean accuracy score: 0.8016, std_dev: 0.0378
-params: {'C': 1000}, mean accuracy score: 0.8203, std_dev: 0.0324
-params: {'C': 2000}, mean accuracy score: 0.8078, std_dev: 0.0362
-params: {'C': 3000}, mean accuracy score: 0.8156, std_dev: 0.0344
-params: {'C': 500}, mean precision score: 0.7947, std_dev: 0.0395
-params: {'C': 1000}, mean precision score: 0.8066, std_dev: 0.0506
-params: {'C': 2000}, mean precision score: 0.7940, std_dev: 0.0562
-params: {'C': 3000}, mean precision score: 0.8008, std_dev: 0.0617
-params: {'C': 500}, mean recall score: 0.8204, std_dev: 0.0820
-params: {'C': 1000}, mean recall score: 0.8520, std_dev: 0.0561
-params: {'C': 2000}, mean recall score: 0.8380, std_dev: 0.0482
-params: {'C': 3000}, mean recall score: 0.8477, std_dev: 0.0453
-params: {'C': 500}, mean f1 score: 0.8047, std_dev: 0.0429
-params: {'C': 1000}, mean f1 score: 0.8264, std_dev: 0.0318
-params: {'C': 2000}, mean f1 score: 0.8138, std_dev: 0.0386
-params: {'C': 3000}, mean f1 score: 0.8216, std_dev: 0.0378
+best params: {'alpha': 1e-06}
+best model: SGDClassifier(alpha=1e-06, loss='log_loss', max_iter=5000, penalty='l1')
+params: {'alpha': 1e-06}, mean accuracy score: 0.7562, std_dev: 0.0381
+params: {'alpha': 1e-05}, mean accuracy score: 0.7469, std_dev: 0.0145
+params: {'alpha': 0.0001}, mean accuracy score: 0.7516, std_dev: 0.0259
+params: {'alpha': 0.001}, mean accuracy score: 0.7406, std_dev: 0.0426
+params: {'alpha': 0.1}, mean accuracy score: 0.6891, std_dev: 0.0446
+params: {'alpha': 1}, mean accuracy score: 0.4688, std_dev: 0.0360
+params: {'alpha': 1e-06}, mean precision score: 0.7472, std_dev: 0.0278
+params: {'alpha': 1e-05}, mean precision score: 0.7419, std_dev: 0.0507
+params: {'alpha': 0.0001}, mean precision score: 0.7470, std_dev: 0.0461
+params: {'alpha': 0.001}, mean precision score: 0.7308, std_dev: 0.0582
+params: {'alpha': 0.1}, mean precision score: 0.6791, std_dev: 0.0617
+params: {'alpha': 1}, mean precision score: 0.3865, std_dev: 0.1946
+params: {'alpha': 1e-06}, mean recall score: 0.7782, std_dev: 0.0744
+params: {'alpha': 1e-05}, mean recall score: 0.7656, std_dev: 0.0227
+params: {'alpha': 0.0001}, mean recall score: 0.7638, std_dev: 0.0421
+params: {'alpha': 0.001}, mean recall score: 0.7687, std_dev: 0.0439
+params: {'alpha': 0.1}, mean recall score: 0.7203, std_dev: 0.0574
+params: {'alpha': 1}, mean recall score: 0.7932, std_dev: 0.3967
+params: {'alpha': 1e-06}, mean f1 score: 0.7610, std_dev: 0.0461
+params: {'alpha': 1e-05}, mean f1 score: 0.7521, std_dev: 0.0220
+params: {'alpha': 0.0001}, mean f1 score: 0.7544, std_dev: 0.0361
+params: {'alpha': 0.001}, mean f1 score: 0.7483, std_dev: 0.0451
+params: {'alpha': 0.1}, mean f1 score: 0.6981, std_dev: 0.0540
+params: {'alpha': 1}, mean f1 score: 0.5195, std_dev: 0.2607

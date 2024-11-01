@@ -5,11 +5,16 @@ import utils
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier 
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.model_selection import train_test_split
+import numpy as np
+from statsmodels.stats.contingency_tables import mcnemar
+from sklearn.preprocessing import StandardScaler
+from scipy.sparse import csr_matrix
 
 
-def create_descriptors(x_train, method = "bow", ngram_type = 'unigram', vocab_size=False):
+
+def create_descriptors(x_train, method = "bow", ngram_type = 'unigram', vocab_size=False, scale=False):
     '''
     Creates descriptors/feature vectors from the text which has to be in the column "review_text" of the df.
     inputs:
@@ -36,6 +41,18 @@ def create_descriptors(x_train, method = "bow", ngram_type = 'unigram', vocab_si
         model = TfidfVectorizer(ngram_range=ngram_range, max_features=vocab_size if vocab_size else None) 
 
     feature_vectors = model.fit_transform(x_train)
+    print(feature_vectors.shape)
+    if scale:
+        # Ensure feature_vectors is in the correct format for scaling
+        if isinstance(feature_vectors, csr_matrix):
+            # Use StandardScaler directly on sparse matrix
+            scaler = StandardScaler(with_mean=False)  # Use with_mean=False for sparse input
+            feature_vectors = scaler.fit_transform(feature_vectors)  # Scale the feature vectors
+        else:
+            # Convert to dense array for scaling if necessary
+            feature_vectors = feature_vectors.toarray()  # Convert to dense array for scaling
+            scaler = StandardScaler()
+            feature_vectors = scaler.fit_transform(feature_vectors)
 
     # print(f"rows x features: {feature_vectors.shape}")  
     # print(f"examples:\n {[model.get_feature_names_out()[i] for i in range(1, 200, 20)]}")
@@ -49,8 +66,10 @@ def logreg_grid_search(feature_vectors, labels, name=None):
     returns dict
     e.g. {'C' = 3000}
     '''
-    log_reg = LogisticRegression(solver = 'liblinear', penalty='l1')
-    param_grid = {'C': [500, 1000, 2000, 3000]}
+    log_reg = LogisticRegression(solver='saga' ,penalty='l1', max_iter=1000)
+    param_grid = {'C': [1, 10, 500, 1000, 2000, 3000]}
+    # log_reg = SGDClassifier(loss='log_loss', penalty = 'l1', max_iter=5000)
+    # param_grid = {'alpha': [0.000001, 0.00001, 0.0001, 0.001, 0.1, 1]}
     grid_search = utils.perform_grid_search(log_reg, param_grid, feature_vectors, labels)
     utils.write_grid_search_results(f"grid_search_results/log_reg_results_{name}.txt", grid_search)
     return grid_search.best_params_
@@ -171,6 +190,22 @@ def train_model(x_train, y_train, model_type, hyperparameters=None):
     return model
 
 
+def stat_test_mcnemar(pred_1, pred_2, test):
+
+    #each vector has 1 in correct predictions and 0 in wrong ones 
+    correct_1 = np.where(pred_1 == test, 1, 0)  
+    correct_2 = np.where(pred_2 == test, 1, 0) 
+    #calculate cont table terms and define cont table
+    a = np.sum((correct_1 == 1) & (correct_2 == 1))  
+    b = np.sum((correct_1 == 1) & (correct_2 == 0))  
+    c = np.sum((correct_1 == 0) & (correct_2 == 1))  
+    d = np.sum((correct_1 == 0) & (correct_2 == 0))   
+    contingency_table = np.array([[a, b], [c, d]])
+    result = mcnemar(contingency_table, exact=False, correction=True)
+
+    return result
+
+
 
 def main():
     
@@ -189,8 +224,8 @@ def main():
     # for METHOD in METHODS:
     #     for NGRAM_TYPE in NGRAM_TYPES:
     #         print(METHOD, NGRAM_TYPE)
-            # feature_vectors_train, transformer = create_descriptors(x_train, method=METHOD, ngram_type=NGRAM_TYPE, vocab_size=VOCAB_SIZE)  
-            # feature_vectors_test = transformer.transform(x_test)
+    #         feature_vectors_train, transformer = create_descriptors(x_train, method=METHOD, ngram_type=NGRAM_TYPE, vocab_size=VOCAB_SIZE, scale=False)  
+    #         feature_vectors_test = transformer.transform(x_test)
     #         # grid searches, toggle on the one you want to perform
     #         best_vocab_size = naive_bayes_search(
     #                             reviews.loc[:len(x_train)], METHOD, NGRAM_TYPE, 
@@ -198,17 +233,21 @@ def main():
     #                             ) #have to change: take as input only x_train 
     #                             #   and not all dataframe
     #         logreg_best_params = logreg_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+    #         print(logreg_best_params)
     #         tree_best_params = tree_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
     #         rf_best_params = rf_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+
     feature_vectors_train, model = create_descriptors(x_train,  'bow', 'bigram', None) #only for naive bayes
     feature_vectors_test = model.transform(x_test) #only for naive bayes too
+
+    preds_bi = []
 
     for model_type, hyperparams in zip(['logreg', 'tree', 'rf'], [{'C': 3000}, {"ccp_alpha":0.01}, {"n_estimators": 400, "max_features": 'sqrt'}]):
         trained_model = train_model(feature_vectors_train, y_train, model_type, hyperparameters=hyperparams)
         y_pred = trained_model.predict(feature_vectors_test)
         accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
         print(f'best {model_type}:: accuracy:{accuracy}, precision:{precision}, recall:{recall}, f1_score:{f1_score}')
-
+        preds_bi.append(y_pred)
 
     feature_vectors_train, model = create_descriptors(x_train,  'bow', 'bigram', 2000) #only for naive bayes
     feature_vectors_test = model.transform(x_test) #only for naive bayes too
@@ -216,18 +255,70 @@ def main():
     y_pred = bayes.predict(feature_vectors_test)
     accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
     print(f'best bayes:: accuracy:{accuracy}, precision:{precision}, recall:{recall}, f1_score:{f1_score}')
+    preds_bi.append(y_pred)
 
 
-    # #Train full model. if you we have skipped the grid search by this point, hyperparameters should be specified as dict
-    # # e.g. {"C" : 3000}
-    # model=train_model(feature_vectors_train, y_train, "bayes", hyperparameters=None)
-    # y_pred = model.predict(feature_vectors_test)
-    # accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
-    # print(accuracy, precision, recall, f1_score)
+#     # #Train full model. if you we have skipped the grid search by this point, hyperparameters should be specified as dict
+#     # # e.g. {"C" : 3000}
+#     # model=train_model(feature_vectors_train, y_train, "bayes", hyperparameters=None)
+#     # y_pred = model.predict(feature_vectors_test)
+#     # accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
+#     # print(accuracy, precision, recall, f1_score)
 
-    # #put the correct folder name
-    # with open("model_eval/bayes_tfidf_none.txt", "w") as f:
-    #     f.write(f"accuracy: {accuracy:.4f}\nprecision: {precision:.4f}\nrecall{recall:.4f}\nf1_score: {f1_score:.4f} ")
+#     # #put the correct folder name
+#     # with open("model_eval/bayes_tfidf_none.txt", "w") as f:
+#     #     f.write(f"accuracy: {accuracy:.4f}\nprecision: {precision:.4f}\nrecall{recall:.4f}\nf1_score: {f1_score:.4f} ")
+
+
+    logpred_bi, treepred_bi, rfpred_bi, bayespred_bi = preds_bi
+
+    print("bigram bayes, logreg: ", stat_test_mcnemar(bayespred_bi, logpred_bi, y_test))
+    print("bigram rf, log: ", stat_test_mcnemar(rfpred_bi, logpred_bi, y_test))
+    print("bigram rf, bayes: ", stat_test_mcnemar(rfpred_bi, bayespred_bi, y_test))
+    print("bigram tree, logreg: ", stat_test_mcnemar(treepred_bi, logpred_bi, y_test))
+
+
+#     #################################################
+
+    feature_vectors_train, model = create_descriptors(x_train,  'bow', 'unigram', None) #only for naive bayes
+    feature_vectors_test = model.transform(x_test) #only for naive bayes too
+
+    preds_uni = []
+
+    for model_type, hyperparams in zip(['logreg', 'tree', 'rf'], [{'C': 3000}, {"ccp_alpha":0.01}, {"n_estimators": 400, "max_features": 'sqrt'}]):
+        trained_model = train_model(feature_vectors_train, y_train, model_type, hyperparameters=hyperparams)
+        y_pred = trained_model.predict(feature_vectors_test)
+        accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
+        print(f'best {model_type}:: accuracy:{accuracy}, precision:{precision}, recall:{recall}, f1_score:{f1_score}')
+        preds_uni.append(y_pred)
+
+    feature_vectors_train, model = create_descriptors(x_train,  'bow', 'bigram', 1000) #only for naive bayes
+    feature_vectors_test = model.transform(x_test) #only for naive bayes too
+    bayes=train_model(feature_vectors_train, y_train, 'bayes', hyperparameters=None)
+    y_pred = bayes.predict(feature_vectors_test)
+    accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
+    print(f'best bayes:: accuracy:{accuracy}, precision:{precision}, recall:{recall}, f1_score:{f1_score}')
+    preds_uni.append(y_pred)
+
+    logpred_uni, treepred_uni, rfpred_uni, bayespred_uni = preds_uni
+
+    print("unigram bayes, logreg: ", stat_test_mcnemar(bayespred_uni, logpred_uni, y_test))
+    print("unigram rf, log: ", stat_test_mcnemar(rfpred_uni, logpred_uni, y_test))
+    print("unigram rf, bayes: ", stat_test_mcnemar(rfpred_uni, bayespred_uni, y_test))
+    print("unigram tree, logreg: ", stat_test_mcnemar(treepred_uni, logpred_uni, y_test))
+
+
+
+
+    print("unigram vs bi: bayes ", stat_test_mcnemar(bayespred_uni, bayespred_bi, y_test))
+    print("unigram vs bi: log ", stat_test_mcnemar(logpred_bi, logpred_uni, y_test))
+    print("unigram vs bi: rf ", stat_test_mcnemar(rfpred_uni, rfpred_bi, y_test))
+    print("unigram vs bi: tree: ", stat_test_mcnemar(treepred_uni, treepred_bi, y_test))
+
+
+
+
+
 
 
 if __name__ == "__main__":
