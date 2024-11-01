@@ -184,25 +184,42 @@ def main():
     labels = reviews["deceptive_flag"].values.astype(int)
     x_train, x_test, y_train, y_test = train_test_split(reviews['review_text'], labels, test_size=0.2)
 
-    for METHOD in METHODS:
-        for NGRAM_TYPE in NGRAM_TYPES:
-            print(METHOD, NGRAM_TYPE)
-            feature_vectors_train, transformer = create_descriptors(x_train, method=METHOD, ngram_type=NGRAM_TYPE, vocab_size=VOCAB_SIZE)  
-            feature_vectors_test = transformer.transform(x_test)
-            # grid searches, toggle on the one you want to perform
-            best_vocab_size = naive_bayes_search(
-                                reviews.loc[:len(x_train)], METHOD, NGRAM_TYPE, 
-                                vocab_sizes= [500, 1000, 2000, 3000, None], name=f"{NGRAM_TYPE}_{METHOD}"
-                                ) #have to change: take as input only x_train 
-                                #   and not all dataframe
-            logreg_best_params = logreg_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
-            tree_best_params = tree_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
-            rf_best_params = rf_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
-            feature_vectors_train, model = create_descriptors(x_train, METHOD, NGRAM_TYPE, best_vocab_size) #only for naive bayes
-            feature_vectors_test = model.transform(x_test) #only for naive bayes too
+
+
+    # for METHOD in METHODS:
+    #     for NGRAM_TYPE in NGRAM_TYPES:
+    #         print(METHOD, NGRAM_TYPE)
+            # feature_vectors_train, transformer = create_descriptors(x_train, method=METHOD, ngram_type=NGRAM_TYPE, vocab_size=VOCAB_SIZE)  
+            # feature_vectors_test = transformer.transform(x_test)
+    #         # grid searches, toggle on the one you want to perform
+    #         best_vocab_size = naive_bayes_search(
+    #                             reviews.loc[:len(x_train)], METHOD, NGRAM_TYPE, 
+    #                             vocab_sizes= [500, 1000, 2000, 3000, None], name=f"{NGRAM_TYPE}_{METHOD}"
+    #                             ) #have to change: take as input only x_train 
+    #                             #   and not all dataframe
+    #         logreg_best_params = logreg_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+    #         tree_best_params = tree_grid_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+    #         rf_best_params = rf_search(feature_vectors_train, y_train, name=f"{NGRAM_TYPE}_{METHOD}")
+    feature_vectors_train, model = create_descriptors(x_train,  'bow', 'bigram', None) #only for naive bayes
+    feature_vectors_test = model.transform(x_test) #only for naive bayes too
+
+    for model_type, hyperparams in zip(['logreg', 'tree', 'rf'], [{'C': 3000}, {"ccp_alpha":0.01}, {"n_estimators": 400, "max_features": 'sqrt'}]):
+        trained_model = train_model(feature_vectors_train, y_train, model_type, hyperparameters=hyperparams)
+        y_pred = trained_model.predict(feature_vectors_test)
+        accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
+        print(f'best {model_type}:: accuracy:{accuracy}, precision:{precision}, recall:{recall}, f1_score:{f1_score}')
+
+
+    feature_vectors_train, model = create_descriptors(x_train,  'bow', 'bigram', 2000) #only for naive bayes
+    feature_vectors_test = model.transform(x_test) #only for naive bayes too
+    bayes=train_model(feature_vectors_train, y_train, 'bayes', hyperparameters=None)
+    y_pred = bayes.predict(feature_vectors_test)
+    accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
+    print(f'best bayes:: accuracy:{accuracy}, precision:{precision}, recall:{recall}, f1_score:{f1_score}')
+
 
     # #Train full model. if you we have skipped the grid search by this point, hyperparameters should be specified as dict
-    # # e.g. {"C" = 3000}
+    # # e.g. {"C" : 3000}
     # model=train_model(feature_vectors_train, y_train, "bayes", hyperparameters=None)
     # y_pred = model.predict(feature_vectors_test)
     # accuracy, precision, recall, f1_score = utils.evaluate_model(y_test, y_pred)
